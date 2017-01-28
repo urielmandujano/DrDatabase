@@ -46,9 +46,11 @@ def update_record_by_id(cursor, target_id, field, contents):
     sql = """UPDATE Patients SET ? = ? WHERE ID = ?"""
     cursor.execute(sql, field, contents, target_id)
 
-def get_record_by_field(cursor, field, target_value):
-    sql = """SELECT * FROM Patients WHERE ? = ?"""
-    cursor.execute(sql, field, target_value)
+def get_record_by_field(cursor, params):
+    field, target_value = list(params.keys())[0], list(params.values())[0]
+    sql = """SELECT * FROM Patients WHERE {} = ?""".format(field)
+    results = cursor.execute(sql, (target_value,))
+    return results.fetchall()
 
 def get_records_by_many_fields(cursor, params):
     """
