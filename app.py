@@ -30,11 +30,8 @@ def delete_patient():
     pass
 
 def lookup(cursor, params):
-    if len(params) == 1:
-        results = patientsdb.get_record_by_field(cursor, params)
-    else:
-        results = patientsdb.get_records_by_many_fields(cursor, params)
-    return results
+    return patientsdb.get_records_by_fields(cursor, params)
+
 
 def main():
     p = {"LastName": "Lopez", "FirstName": "TestUtilsParamToDict",
@@ -44,7 +41,7 @@ def main():
     cursor = patientsdb.connect_database()
 
     #add_patient(cursor, p)
-    #lookup(cursor, {"LastName":"Lopez"})
+    lookup(cursor, {"LastName":"Lopez"})
     lookup(cursor, {"LastName":"Lopez", "FirstName":"TestUtilsParamToDict"})
 
 
