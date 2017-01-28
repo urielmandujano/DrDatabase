@@ -30,21 +30,6 @@ def create_patients_table(cursor, table):
                         LastActive  DATE)'''.format(table))
 
 def add_record(cursor, parameters):
-    # Note: More robust address check if address provided is looked
-    # up in a mapping service. Also, maybe should do this error checking
-    # 1 layer up
-
-    if "FirstName" not in parameters or parameters["FirstName"] == "":
-        return errors.NameError("")
-    if "LastName" not in parameters or parameters["LastName"] == "":
-        return errors.NameError("")
-    if "Address" not in parameters or parameters["Address"] == "":
-        return errors.AddressError("")
-    if "DOB" not in parameters or parameters["DOB"] == "" or \
-        not utils.correct_dob_form(parameters["DOB"]):
-        return errors.DOBError("") if "DOB" not in parameters \
-            else errors.DOBError(parameters["DOB"])
-
     sql = '''INSERT INTO Patients (FirstName, LastName, MiddleName, \
           Address, Email, DOB, LastActive) VALUES (?, ?, ?, ?, ?, ?, ?)'''
     params = (parameters["FirstName"], parameters["LastName"],
@@ -52,7 +37,6 @@ def add_record(cursor, parameters):
           parameters["Email"], parameters["DOB"], parameters["LastActive"])
     cursor.execute(sql, params)
     cursor.connection.commit()
-    return
 
 def delete_record_by_id(cursor, target_id):
     sql = """DELETE FROM Patients WHERE id = ?"""
@@ -62,18 +46,36 @@ def update_record_by_id(cursor, target_id, field, contents):
     sql = """UPDATE Patients SET ? = ? WHERE ID = ?"""
     cursor.execute(sql, field, contents, target_id)
 
-def get_records(cursor, field, target_value):
+def get_record_by_field(cursor, field, target_value):
     sql = """SELECT * FROM Patients WHERE ? = ?"""
     cursor.execute(sql, field, target_value)
 
-def test():
+def get_records_by_many_fields(cursor, params):
+    """
+    Gets records by searching for multiple matching fields. Fields
+    should be designated as key value pair in the params dictionary
+    """
+    num_fields = len(params)
+    base_query = ""
+    for i in range(num_fields - 1):
+        base_query += "{} = ? AND "
+    base_query += "{} = ?"
+
+    fields, values = utils.param_dict_to_tuple(params)
+    base_query = base_query.format(*fields)
+    sql = """SELECT * From Patients WHERE {}""".format(base_query)
+    results = cursor.execute(sql, values)
+    return results.fetchall()
+
+def main():
     cursor = connect_database()
     #reinitialize_table(cursor, "Patients")
-    p = {"LastName": "Mandujano", "FirstName": "NewStyle",
+    p = {"LastName": "Mandujano", "FirstName": "TestUtilsParamToDict",
         "MiddleName":"Tulio", "Address":"Texas", "Email": "google",
         "DOB": "2017/01/26", "LastActive":"today"}
-    print (add_record(cursor, p))
+    #print (add_record(cursor, p))
+    get_records_by_many_fields(cursor, {"FirstName":"Test", "Email":"google"})
     cursor.close()
 
-
-test()
+if __name__ == '__main__':
+    main()

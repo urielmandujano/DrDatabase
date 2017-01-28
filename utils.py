@@ -5,7 +5,6 @@ Contains util functions for use across modules
 import re
 import time
 
-
 def correct_dob_form(dob):
     """Returns true if dob is in form YYYY/MM/DD"""
     # Note: More robust check would be against a calendar
@@ -30,8 +29,19 @@ def correct_dob_form(dob):
         return False
     return True
 
+def param_dict_to_tuple(params):
+    """Converts a dict of params into 2 ordered tuples for DB use"""
+    fields = ['FirstName', 'LastName', 'MiddleName', 'ID', 'Address', 'Email',\
+              'DOB', 'LastActive']
+    ordered_fields, ordered_values = [], []
+    for f in fields:
+        if f in params:
+            ordered_fields.append(f)
+            ordered_values.append(params[f])
+    return tuple(ordered_fields), tuple(ordered_values)
+
 def main():
     print(correct_dob_form("2017/01/01"))
 
-if '__name__' == '__main__':
+if __name__ == '__main__':
     main()
