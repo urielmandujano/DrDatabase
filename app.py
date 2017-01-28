@@ -23,15 +23,18 @@ def add_patient(cursor, params):
     patientsdb.add_record(cursor, params)
     return
 
-def update_patient():
-    pass
+def update_patient(cursor, patient_id, update_params):
+    patientsdb.update_record_by_id(cursor, patient_id, update_params)
 
-def delete_patient():
-    pass
+def delete_patient(cursor, params):
+    results = patientsdb.get_records_by_fields(cursor, params)
+    if len(results) == 1:
+        patient_id = str(results[0][3])
+        patientsdb.delete_record_by_id(cursor, patient_id)
+    return results
 
 def lookup(cursor, params):
     return patientsdb.get_records_by_fields(cursor, params)
-
 
 def main():
     p = {"LastName": "Lopez", "FirstName": "TestUtilsParamToDict",
@@ -41,9 +44,10 @@ def main():
     cursor = patientsdb.connect_database()
 
     #add_patient(cursor, p)
-    lookup(cursor, {"LastName":"Lopez"})
-    lookup(cursor, {"LastName":"Lopez", "FirstName":"TestUtilsParamToDict"})
-
+    #lookup(cursor, {"LastName":"Lopez"})
+    #lookup(cursor, {"LastName":"Lopez", "FirstName":"TestUtilsParamToDict"})
+    #delete_patient(cursor, {"ID":"255"})
+    update_patient(cursor, 21, {"LastName":"Maguire", "FirstName":"Gerardo", "Address":"Grayslake"})
 
 
 if __name__ == '__main__':

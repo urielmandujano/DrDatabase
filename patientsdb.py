@@ -11,7 +11,7 @@ import sqlite3
 import errors, utils
 
 def connect_database(name="patientsdb.sqlite"):
-    conn = sqlite3.connect(name)
+    conn = sqlite3.connect(name, timeout=1)
     return conn.cursor()
 
 def reinitialize_table(cursor, table):
@@ -39,12 +39,23 @@ def add_record(cursor, parameters):
     cursor.connection.commit()
 
 def delete_record_by_id(cursor, target_id):
-    sql = """DELETE FROM Patients WHERE id = ?"""
-    cursor.execute(sql, (target_id,))
+    sql = """DELETE FROM Patients WHERE ID = ?"""
+    cursor.execute( "DELETE FROM Patients WHERE ID = ?", (target_id,))
+    cursor.connection.commit()
 
-def update_record_by_id(cursor, target_id, field, contents):
-    sql = """UPDATE Patients SET ? = ? WHERE ID = ?"""
-    cursor.execute(sql, field, contents, target_id)
+def update_record_by_id(cursor, target_id, params):
+    num_fields = len(params)
+    base_query = ""
+    for i in range(num_fields - 1):
+        base_query += "{} = ? , "
+    base_query += "{} = ?"
+
+    fields, values = utils.param_dict_to_tuple(params)
+    base_query = base_query.format(*fields)
+    values = tuple(values[:] + (target_id,))
+    sql = """UPDATE Patients SET {} WHERE ID = ?""".format(base_query)
+    cursor.execute(sql, values)
+    cursor.connection.commit()
 
 def get_records_by_fields(cursor, params):
     """
