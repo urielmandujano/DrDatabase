@@ -2,8 +2,9 @@
 Application for managing patient information and interfacing
 with the database
 """
+import pandas, math
 
-import patientsdb, utils
+import patientsdb, errors, utils
 
 def add_patient(cursor, params):
     # Note: More robust address check if address provided is looked
@@ -36,6 +37,55 @@ def delete_patient(cursor, params):
 def lookup(cursor, params):
     return patientsdb.get_records_by_fields(cursor, params)
 
+def read_patients_csv(cursor, filename):
+    cols = ["FirstName", "LastName","MiddleName", "Address", \
+            "Email", "DOB", "LastActive"]
+    df = pandas.read_csv(filename)
+    df = df.fillna("") # Fill NaN values
+
+    try:
+        assert list(df) == cols
+    except AssertionError:
+        form = ', '.join(cols)
+        return "Invalid file header format. Must be:\n{}".format(form)
+
+    successes, failures = 0, {}
+    for row in df.iterrows():
+        new_patient = {}
+        for field, value in zip(cols, row[1]):
+            new_patient[field] = value
+
+        result = add_patient(cursor, new_patient)
+        if result == None:
+            successes += 1
+        else:
+            _track_add_errors(failures, result, new_patient)
+
+    return _read_results(successes, failures)
+
+def _track_add_errors(fails, outcome, patient):
+    if isinstance(outcome, errors.Error):
+        if outcome.name() in fails:
+            fails[outcome.name()].append((outcome, patient))
+        else:
+            fails[outcome.name()] = [(outcome, patient)]
+
+def _read_results(successes, fails):
+    """
+    Receives the number of successes and a dict of errors where
+    keys are the error types and values are Error object with its
+    corresponding patient data
+    """
+    res_str = "\nSuccessfully added {} patient records. \n".format(successes)
+
+    for k in fails.keys():
+        res_str += "Encountered {} {}:\n".format(len(fails[k]), k)
+        for err, patient in fails[k]:
+            cause = ','.join(list(patient.values()))
+            res_str += " {}\n  Source: {}\n".format(err, cause)
+
+    return res_str
+
 def main():
     p = {"LastName": "Lopez", "FirstName": "TestUtilsParamToDict",
         "MiddleName":"Tulio", "Address":"Texas", "Email": "google",
@@ -47,8 +97,8 @@ def main():
     #lookup(cursor, {"LastName":"Lopez"})
     #lookup(cursor, {"LastName":"Lopez", "FirstName":"TestUtilsParamToDict"})
     #delete_patient(cursor, {"ID":"255"})
-    update_patient(cursor, 21, {"LastName":"Maguire", "FirstName":"Gerardo", "Address":"Grayslake"})
-
+    #update_patient(cursor, 21, {"LastName":"Maguire", "FirstName":"Gerardo", "Address":"Grayslake"})
+    print(read_patients_csv(cursor, "test_patients.csv"))
 
 if __name__ == '__main__':
     main()
