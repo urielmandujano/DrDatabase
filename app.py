@@ -7,28 +7,15 @@ import pandas, math
 import patientsdb, errors, utils
 
 def add_patient(cursor, params):
-    # Note: More robust address check if address provided is looked
-    # up in a mapping service.
-
-    if "FirstName" not in params or params["FirstName"] == "":
-        return errors.NameError("")
-    if "LastName" not in params or params["LastName"] == "":
-        return errors.NameError("")
-    if "Address" not in params or params["Address"] == "":
-        return errors.AddressError("")
-    if "DOB" not in params or params["DOB"] == "" or \
-        not utils.correct_date_form(params["DOB"]):
-        return errors.DateError("") if "DOB" not in params \
-            else errors.DateError(params["DOB"])
-    if "LastActive" not in params or params["LastActive"] == "" or \
-        not utils.correct_date_form(params["LastActive"]):
-        return errors.DateError("") if "LastActive" not in params \
-            else errors.DateError(params["LastActive"])
-
+    res = _integ_check(params)
+    if isinstance(res, errors.Error):
+        return res
     patientsdb.add_record(cursor, params)
-    return
 
 def update_patient(cursor, patient_id, update_params):
+    res = _update_integ_check(update_params)
+    if isinstance(res, errors.Error):
+        return res
     patientsdb.update_record_by_id(cursor, patient_id, update_params)
 
 def delete_patient(cursor, params):
@@ -90,22 +77,63 @@ def _read_results(successes, fails):
 
     return res_str
 
+def _integ_check(params):
+    """Performs integrity checks on any data that is going to
+    modify data in the database"""
+    # Note: More robust address check if address provided is looked
+    # up in a mapping service.
+
+    if "FirstName" not in params or params["FirstName"] == "":
+        return errors.NameError("")
+    if "LastName" not in params or params["LastName"] == "":
+        return errors.NameError("")
+    if "Address" not in params or params["Address"] == "":
+        return errors.AddressError("")
+    if "DOB" not in params or params["DOB"] == "" or \
+        not utils.correct_date_form(params["DOB"]):
+        return errors.DateError("") if "DOB" not in params \
+            else errors.DateError(params["DOB"])
+    if "LastActive" in params and \
+        not utils.correct_date_form(params["LastActive"]):
+        return errors.DateError(params["LastActive"])
+    return None
+
+def _update_integ_check(params):
+    """ Performs integrity checks on update information """
+    if "FirstName" in params and params["FirstName"] == "":
+        return errors.NameError("")
+    if "LastName" in params and params["LastName"] == "":
+        return errors.NameError("")
+    if "Address" in params and params["Address"] == "":
+        return errors.AddressError("")
+    if "DOB" in params and (params["DOB"] == "" or \
+        not utils.correct_date_form(params["DOB"])):
+        return errors.DateError(params["DOB"])
+    if "LastActive" in params and \
+        not utils.correct_date_form(params["LastActive"]):
+        return errors.DateError(params["LastActive"])
+    return None
+
 def find_recently_active(cursor, threshold=1):
-    pass
+    """ Threshold is provided as a fraction of a year """
+    active_thresh = utils.date_threshold(threshold)
+    active = patientsdb.get_records_by_date(cursor, active_thresh)
+    return active
 
 def main():
     p = {"LastName": "Lopez", "FirstName": "TestUtilsParamToDict",
         "MiddleName":"Tulio", "Address":"Texas", "Email": "google",
-        "DOB": "2017/01/26", "LastActive":"today"}
+        "DOB": "2017-01-26", "LastActive":"2000-01-01"}
 
     cursor = patientsdb.connect_database()
 
-    #add_patient(cursor, p)
+    #print(add_patient(cursor, p))
     #lookup(cursor, {"LastName":"Lopez"})
     #lookup(cursor, {"LastName":"Lopez", "FirstName":"TestUtilsParamToDict"})
-    #delete_patient(cursor, {"ID":"255"})
-    #update_patient(cursor, 21, {"LastName":"Maguire", "FirstName":"Gerardo", "Address":"Grayslake"})
-    print(read_patients_csv(cursor, "small_patients.csv"))
+    #delete_patient(cursor, {"ID":"7"})
+    #print(update_patient(cursor, 6, {"LastName":"Maguire", "FirstName":"Gerardo", "Address":"101"}))
+    #print(read_patients_csv(cursor, "small_patients.csv"))
+    print(find_recently_active(cursor))
 
 if __name__ == '__main__':
     main()

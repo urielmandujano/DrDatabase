@@ -75,12 +75,16 @@ def get_records_by_fields(cursor, params, table="Patients"):
     results = cursor.execute(sql, values)
     return results.fetchall()
 
+def get_records_by_date(cursor, date, table="Patients"):
+    sql = "SELECT * from {} where LastActive>date(?)".format(table)
+    return cursor.execute(sql, (date,)).fetchall()
+
 def main():
     cursor = connect_database()
-    #reinitialize_table(cursor, "Patients")
+    reinitialize_table(cursor, "Patients")
     p = {"LastName": "Mandujano", "FirstName": "TestUtilsParamToDict",
         "MiddleName":"Tulio", "Address":"Texas", "Email": "google",
-        "DOB": "2017/01/26", "LastActive":"today"}
+        "DOB": "2017-01-26", "LastActive":"today"}
     #print (add_record(cursor, p))
     cursor.close()
 

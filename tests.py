@@ -71,7 +71,7 @@ class DBTest(object):
 
         p = {"LastName": "Generic", "FirstName": "Boring",
             "MiddleName":"Stale", "Address":"L.A.", "Email": "@google",
-            "DOB": "2017/01/26", "LastActive":"today"}
+            "DOB": "2017-01-26", "LastActive":"2016-12-25"}
         patientsdb.add_record(self.cur, p, self.testfile)
 
         # Check DB increased by 1
@@ -96,7 +96,7 @@ class DBTest(object):
         patientsdb.reinitialize_table(self.cur, self.testfile)
         p = {"LastName": "Generic", "FirstName": "Boring",
                 "MiddleName":"Stale", "Address":"L.A.", "Email": "@google",
-                "DOB": "2017/01/26", "LastActive":"today"}
+                "DOB": "2017-01-26", "LastActive":"2016-12-25"}
         num_records = 1
         patientsdb.add_record(self.cur, p, self.testfile)
         patientsdb.delete_record_by_id(self.cur, 1, self.testfile)
@@ -126,13 +126,13 @@ class DBTest(object):
         patientsdb.reinitialize_table(self.cur, self.testfile)
         p = {"LastName": "Generic", "FirstName": "Boring",
             "MiddleName":"Stale", "Address":"L.A.", "Email": "@google",
-            "DOB": "2017/01/26", "LastActive":"today"}
+            "DOB": "2017/01/26", "LastActive":"2015-11-14"}
         patientsdb.add_record(self.cur, p, self.testfile)
 
         # Create updated fields
         new_p = {"LastName": "NewGeneric", "FirstName": "NewBoring",
             "MiddleName":"NewStale", "Address":"NewL.A.",
-            "Email": "New@google", "DOB": "2017/01/26", "LastActive":"today"}
+            "Email": "New@google", "DOB": "2017/01/26", "LastActive":"2015-04-11"}
 
         # Update with new fields
         patientsdb.update_record_by_id(self.cur, 1, new_p, self.testfile)

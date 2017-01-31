@@ -20,4 +20,4 @@ class AddressError(Error):
 class DateError(Error):
     def __str__(self):
         return "Error: Date '{}' is ".format(self.cause) + \
-               "invalid. Must be of the form YYYY/MM/DD"
+               "invalid. Must be of the form YYYY-MM-DD"
