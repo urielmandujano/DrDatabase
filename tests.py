@@ -17,7 +17,8 @@ class DBTest(object):
         t5 = self.delete_record_by_id_test()
         t6 = self.update_record_by_id_test()
         t7 = self.get_records_by_fields_test()
-        results = [t1, t2, t3, t4, t5, t6, t7]
+        t8 = self.get_records_by_date_test()
+        results = [t1, t2, t3, t4, t5, t6, t7, t8]
         print("{} out of {} tests passed".format(sum(results), len(results)))
 
     def connect_database_test(self):
@@ -126,13 +127,13 @@ class DBTest(object):
         patientsdb.reinitialize_table(self.cur, self.testfile)
         p = {"LastName": "Generic", "FirstName": "Boring",
             "MiddleName":"Stale", "Address":"L.A.", "Email": "@google",
-            "DOB": "2017/01/26", "LastActive":"2015-11-14"}
+            "DOB": "2017-01-26", "LastActive":"2015-11-14"}
         patientsdb.add_record(self.cur, p, self.testfile)
 
         # Create updated fields
         new_p = {"LastName": "NewGeneric", "FirstName": "NewBoring",
             "MiddleName":"NewStale", "Address":"NewL.A.",
-            "Email": "New@google", "DOB": "2017/01/26", "LastActive":"2015-04-11"}
+            "Email": "New@google", "DOB": "2017-01-26", "LastActive":"2015-04-11"}
 
         # Update with new fields
         patientsdb.update_record_by_id(self.cur, 1, new_p, self.testfile)
@@ -155,13 +156,13 @@ class DBTest(object):
         patientsdb.reinitialize_table(self.cur, self.testfile)
         pA = {"LastName": "A", "FirstName": "AA",
             "MiddleName":"AAA", "Address":"AAAA", "Email": "AAAAA",
-            "DOB": "2017/01/26", "LastActive":""}
+            "DOB": "2017-01-26", "LastActive":""}
         pB = {"LastName": "B", "FirstName": "BB",
             "MiddleName":"BBB", "Address":"BBBB", "Email": "AAAAA",
-            "DOB": "2017/01/26", "LastActive":""}
+            "DOB": "2017-01-26", "LastActive":""}
         pC = {"LastName": "C", "FirstName": "CC",
             "MiddleName":"CCC", "Address":"CCCC", "Email": "CCCCC",
-            "DOB": "2017/01/26", "LastActive":""}
+            "DOB": "2017-01-26", "LastActive":""}
         patientsdb.add_record(self.cur, pA, self.testfile)
         patientsdb.add_record(self.cur, pB, self.testfile)
         patientsdb.add_record(self.cur, pC, self.testfile)
@@ -177,6 +178,44 @@ class DBTest(object):
             except AssertionError:
                 return False
         return True
+
+    def get_records_by_date_test(self):
+        # Insert 3 distinct date records
+        patientsdb.reinitialize_table(self.cur, self.testfile)
+        pA = {"LastName": "A", "FirstName": "AA",
+            "MiddleName":"AAA", "Address":"AAAA", "Email": "AAAAA",
+            "DOB": "2015-01-26", "LastActive":"2015-01-01"}
+        pB = {"LastName": "B", "FirstName": "BB",
+            "MiddleName":"BBB", "Address":"BBBB", "Email": "AAAAA",
+            "DOB": "2017-01-26", "LastActive":"2016-01-01"}
+        pC = {"LastName": "C", "FirstName": "CC",
+            "MiddleName":"CCC", "Address":"CCCC", "Email": "CCCCC",
+            "DOB": "2017-01-26", "LastActive":"2015-12-26"}
+        patientsdb.add_record(self.cur, pA, self.testfile)
+        patientsdb.add_record(self.cur, pB, self.testfile)
+        patientsdb.add_record(self.cur, pC, self.testfile)
+
+        # Query to receive only 2 of those date records back
+        date = "2015-12-25"
+        res = patientsdb.get_records_by_date(self.cur, date, self.testfile)
+
+        # Make sure they are the correct number and correctly dated
+        try:
+            assert len(res) == 2
+        except AssertionError:
+            return False
+
+        date = date.split('-')
+        for r in res:
+            r_date = r[7].split('-')
+            for i in range(len(date)):
+                if i == 0 and int(date[i]) < int(r_date[i]):
+                    return True
+                else:
+                    try:
+                        assert int(data[i]) <= int(r_date[i])
+                    except AssertionError:
+                        return False
 
 def main():
     test = DBTest("TestTable")

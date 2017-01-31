@@ -1,10 +1,8 @@
 """
 Contains the public interface for interacting with
-the patients database
+the patients database. These methods perform no integrity
+checks on supplied data and insert potentially corrupt data
 python3.5
-
-TODO
-- add tests
 """
 import sqlite3
 
