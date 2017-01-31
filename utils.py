@@ -5,8 +5,8 @@ Contains util functions for use across modules
 import re
 import time
 
-def correct_dob_form(dob):
-    """Returns true if dob is in form YYYY/MM/DD"""
+def correct_date_form(dob):
+    """Returns true if date is in form YYYY/MM/DD"""
     # Note: More robust check would be against a calendar
 
     match = "[1-2][0-9][0-9][0-9]/[0-1][1-9]/[0-3][1-9]"

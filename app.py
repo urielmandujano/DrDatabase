@@ -17,9 +17,13 @@ def add_patient(cursor, params):
     if "Address" not in params or params["Address"] == "":
         return errors.AddressError("")
     if "DOB" not in params or params["DOB"] == "" or \
-        not utils.correct_dob_form(params["DOB"]):
-        return errors.DOBError("") if "DOB" not in params \
-            else errors.DOBError(params["DOB"])
+        not utils.correct_date_form(params["DOB"]):
+        return errors.DateError("") if "DOB" not in params \
+            else errors.DateError(params["DOB"])
+    if "LastActive" not in params or params["LastActive"] == "" or \
+        not utils.correct_date_form(params["LastActive"]):
+        return errors.DateError("") if "LastActive" not in params \
+            else errors.DateError(params["LastActive"])
 
     patientsdb.add_record(cursor, params)
     return
@@ -86,6 +90,9 @@ def _read_results(successes, fails):
 
     return res_str
 
+def find_recently_active(cursor, threshold=1):
+    pass
+
 def main():
     p = {"LastName": "Lopez", "FirstName": "TestUtilsParamToDict",
         "MiddleName":"Tulio", "Address":"Texas", "Email": "google",
@@ -98,7 +105,7 @@ def main():
     #lookup(cursor, {"LastName":"Lopez", "FirstName":"TestUtilsParamToDict"})
     #delete_patient(cursor, {"ID":"255"})
     #update_patient(cursor, 21, {"LastName":"Maguire", "FirstName":"Gerardo", "Address":"Grayslake"})
-    print(read_patients_csv(cursor, "test_patients.csv"))
+    print(read_patients_csv(cursor, "small_patients.csv"))
 
 if __name__ == '__main__':
     main()
