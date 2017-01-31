@@ -29,21 +29,22 @@ def create_patients_table(cursor, table):
                         DOB         DATE NOT NULL,
                         LastActive  DATE)'''.format(table))
 
-def add_record(cursor, parameters):
-    sql = '''INSERT INTO Patients (FirstName, LastName, MiddleName, \
-          Address, Email, DOB, LastActive) VALUES (?, ?, ?, ?, ?, ?, ?)'''
+def add_record(cursor, parameters, table="Patients"):
+    sql = '''INSERT INTO {} (FirstName, LastName, MiddleName,
+          Address, Email, DOB, LastActive) VALUES
+          (?, ?, ?, ?, ?, ?, ?)'''.format(table)
     params = (parameters["FirstName"], parameters["LastName"],
           parameters["MiddleName"], parameters["Address"],
           parameters["Email"], parameters["DOB"], parameters["LastActive"])
     cursor.execute(sql, params)
     cursor.connection.commit()
 
-def delete_record_by_id(cursor, target_id):
-    sql = """DELETE FROM Patients WHERE ID = ?"""
-    cursor.execute( "DELETE FROM Patients WHERE ID = ?", (target_id,))
+def delete_record_by_id(cursor, target_id, table="Patients"):
+    sql = """DELETE FROM {} WHERE ID = ?""".format(table)
+    cursor.execute(sql, (target_id,))
     cursor.connection.commit()
 
-def update_record_by_id(cursor, target_id, params):
+def update_record_by_id(cursor, target_id, params, table="Patients"):
     num_fields = len(params)
     base_query = ""
     for i in range(num_fields - 1):
@@ -53,11 +54,11 @@ def update_record_by_id(cursor, target_id, params):
     fields, values = utils.param_dict_to_tuple(params)
     base_query = base_query.format(*fields)
     values = tuple(values[:] + (target_id,))
-    sql = """UPDATE Patients SET {} WHERE ID = ?""".format(base_query)
+    sql = """UPDATE {} SET {} WHERE ID = ?""".format(table, base_query)
     cursor.execute(sql, values)
     cursor.connection.commit()
 
-def get_records_by_fields(cursor, params):
+def get_records_by_fields(cursor, params, table="Patients"):
     """
     Gets records by searching for multiple matching fields. Fields
     should be designated as key value pair in the params dictionary
@@ -70,7 +71,7 @@ def get_records_by_fields(cursor, params):
 
     fields, values = utils.param_dict_to_tuple(params)
     base_query = base_query.format(*fields)
-    sql = """SELECT * From Patients WHERE {}""".format(base_query)
+    sql = """SELECT * From {} WHERE {}""".format(table, base_query)
     results = cursor.execute(sql, values)
     return results.fetchall()
 
@@ -81,7 +82,6 @@ def main():
         "MiddleName":"Tulio", "Address":"Texas", "Email": "google",
         "DOB": "2017/01/26", "LastActive":"today"}
     #print (add_record(cursor, p))
-    get_records_by_many_fields(cursor, {"FirstName":"Test", "Email":"google"})
     cursor.close()
 
 if __name__ == '__main__':
